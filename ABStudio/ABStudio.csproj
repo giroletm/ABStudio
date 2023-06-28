@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{30ADF767-664C-47C5-89C6-60CDC84051B9}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>ABStudio</RootNamespace>
+    <AssemblyName>ABStudio</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Zip, Version=23.5.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
+      <HintPath>..\packages\Aspose.Zip.23.5.0\lib\net40\Aspose.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="CppSharp.Runtime, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CppSharp.Runtime.1.0.45.22293\lib\netstandard2.0\CppSharp.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encoding.CodePages, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encoding.CodePages.4.5.0\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controls\CustomPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\PictureBoxDB.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\SizableRect.cs" />
+    <Compile Include="FileFormats\DAT\Sections\MainSection.cs" />
+    <Compile Include="FileFormats\DAT\Sections\Section.cs" />
+    <Compile Include="FileFormats\DAT\Sections\SpriteSection.cs" />
+    <Compile Include="FileFormats\PVR\PVRFile.cs" />
+    <Compile Include="DataReader.cs" />
+    <Compile Include="FileFormats\DAT\DATFile.cs" />
+    <Compile Include="FileFormats\ZSTREAM\ZSTREAMFile.cs" />
+    <Compile Include="Forms\ComboAskForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ComboAskForm.Designer.cs">
+      <DependentUpon>ComboAskForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Main.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Main.Designer.cs">
+      <DependentUpon>Main.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\MCQAskForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\MCQAskForm.Designer.cs">
+      <DependentUpon>MCQAskForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\NumUpDownAskForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\NumUpDownAskForm.Designer.cs">
+      <DependentUpon>NumUpDownAskForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SpritesheetEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SpritesheetEditor.Designer.cs">
+      <DependentUpon>SpritesheetEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Libs\7zip\Common\CommandLineParser.cs" />
+    <Compile Include="Libs\7zip\Common\CRC.cs" />
+    <Compile Include="Libs\7zip\Common\InBuffer.cs" />
+    <Compile Include="Libs\7zip\Common\OutBuffer.cs" />
+    <Compile Include="Libs\7zip\Compress\LZMA\LzmaBase.cs" />
+    <Compile Include="Libs\7zip\Compress\LZMA\LzmaDecoder.cs" />
+    <Compile Include="Libs\7zip\Compress\LZMA\LzmaEncoder.cs" />
+    <Compile Include="Libs\7zip\Compress\LZ\IMatchFinder.cs" />
+    <Compile Include="Libs\7zip\Compress\LZ\LzBinTree.cs" />
+    <Compile Include="Libs\7zip\Compress\LZ\LzInWindow.cs" />
+    <Compile Include="Libs\7zip\Compress\LZ\LzOutWindow.cs" />
+    <Compile Include="Libs\7zip\Compress\RangeCoder\RangeCoder.cs" />
+    <Compile Include="Libs\7zip\Compress\RangeCoder\RangeCoderBit.cs" />
+    <Compile Include="Libs\7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
+    <Compile Include="Libs\7zip\ICoder.cs" />
+    <Compile Include="Libs\StbRectPackSharp\CRuntime.cs" />
+    <Compile Include="Libs\StbRectPackSharp\Packer.cs" />
+    <Compile Include="Libs\StbRectPackSharp\StbRectPack.cs" />
+    <Compile Include="Libs\StbRectPackSharp\StbRectPack.Generated.cs" />
+    <Compile Include="Misc\Common.cs" />
+    <Compile Include="Misc\FolderPicker.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="FileFormats\PVR\PVRTexLib.cs" />
+    <EmbeddedResource Include="Forms\ComboAskForm.resx">
+      <DependentUpon>ComboAskForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\MCQAskForm.resx">
+      <DependentUpon>MCQAskForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SpritesheetEditor.resx">
+      <DependentUpon>SpritesheetEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="icon.ico" />
+    <Content Include="PVRTexLib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
