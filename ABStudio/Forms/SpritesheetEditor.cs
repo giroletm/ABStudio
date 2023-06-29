@@ -120,6 +120,9 @@ namespace ABStudio.Forms
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (!CanBeSaved())
+                return;
+
             Common.SaveFile(ref originalPath, file);
 
             if(!originalPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
@@ -135,6 +138,9 @@ namespace ABStudio.Forms
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (!CanBeSaved())
+                return;
+
             if (!Common.SaveAsFile(ref originalPath, file))
                 return;
 
@@ -144,13 +150,14 @@ namespace ABStudio.Forms
             RefreshTitle();
         }
 
-        private bool SaveSpritesheet()
+        private bool CanBeSaved()
         {
             string ext = Path.GetExtension(data.filenames[0]).ToLower();
 
-            bool isJsonStreamCombo = (originalPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) && (ext == ".stream");
+            bool isJson = originalPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
+            bool isJsonStreamCombo = isJson && (ext == ".stream");
 
-            if (data.filenames[0] == "" || ext == "")
+            if (data.filenames[0] == null || data.filenames[0] == "" || ext == "")
             {
                 MessageBox.Show("Please write a filename for the picture to save with your spritesheet.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
@@ -158,10 +165,16 @@ namespace ABStudio.Forms
 
             if (supportedPicExt.ToList().IndexOf(ext.Substring(1)) < 0 && !isJsonStreamCombo)
             {
-                MessageBox.Show("Unsupported extention \"" + ext + "\", please use a supported extension like PVR or PNG.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Unsupported extention \"" + ext + "\", please use a supported extension like " + (isJson ? "STREAM, " : "") + "PVR or PNG.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
+            return true;
+        }
+
+        private bool SaveSpritesheet()
+        {
+            string ext = Path.GetExtension(data.filenames[0]).ToLower();
             string fname = Path.GetDirectoryName(originalPath) + Path.DirectorySeparatorChar + data.filenames[0];
 
             if (ext == ".pvr")
@@ -378,7 +391,9 @@ namespace ABStudio.Forms
                 }
                 else
                 {
-                    spritesheet = new Bitmap(fullPath);
+                    Bitmap tmp = new Bitmap(fullPath);
+                    spritesheet = new Bitmap(tmp);
+                    tmp.Dispose();
                 }
 
                 if (data.associatedZSTREAM != null)

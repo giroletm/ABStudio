@@ -23,7 +23,8 @@ namespace ABStudio.FileFormats.DAT
         public DATFile(string filename) : this(File.ReadAllBytes(filename)) { }
         public DATFile(byte[] data)
         {
-            file = new MainSection(data);
+            bool isHeaderless = (data[0] != 'K' || data[1] != 'A' || data[2] != '3' || data[3] != 'D');
+            file = new MainSection(data, isHeaderless);
         }
 
         public SpriteData GetAsSpriteData()

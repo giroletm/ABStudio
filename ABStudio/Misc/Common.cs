@@ -156,6 +156,15 @@ namespace ABStudio.Misc
             return null;
         }
 
+        public static string AskForType()
+        {
+            using (ComboAskForm comboAskForm = new ComboAskForm(displayList, "Choose the type of the file you opened"))
+                if (comboAskForm.ShowDialog() == DialogResult.OK)
+                    return displayList[comboAskForm.ComboIndex];
+
+            return null;
+        }
+
         private static DATFile MakeNew(int id)
         {
             return createList[id].Invoke();

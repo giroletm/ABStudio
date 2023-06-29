@@ -41,7 +41,7 @@ namespace ABStudio.FileFormats.DAT
             public SpriteData file = new SpriteData();
 
             public SpriteSection() : base() { }
-            public SpriteSection(byte[] data) : base(data) { }
+            public SpriteSection(byte[] data, bool isHeaderless=false) : base(data, isHeaderless) { }
 
             public override byte[] AsJSONBytes()
             {
@@ -53,8 +53,10 @@ namespace ABStudio.FileFormats.DAT
                 List<byte> rawdata = new List<byte>();
 
 
-                rawdata.AddUInt16((ushort)file.filenames.Count);
-                foreach (string filename in file.filenames)
+                if(!this.isHeaderless)
+                    rawdata.AddUInt16((ushort)file.filenames.Count);
+
+                foreach (string filename in (this.isHeaderless ? (new string[] { file.filenames[0] }) : file.filenames.ToArray()))
                     rawdata.AddString(filename);
 
                 rawdata.AddUInt16((ushort)file.sprites.Count);
@@ -80,7 +82,7 @@ namespace ABStudio.FileFormats.DAT
 
                 int idx = 0;
 
-                ushort texCount = data.GetUInt16(ref idx);
+                ushort texCount = this.isHeaderless ? (ushort)1 : data.GetUInt16(ref idx);
                 for (int texN = 0; texN < texCount; texN++)
                     file.filenames.Add(data.GetString(ref idx));
 

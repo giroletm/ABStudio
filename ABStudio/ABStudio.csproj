@@ -80,7 +80,7 @@
     <Compile Include="FileFormats\DAT\Sections\Section.cs" />
     <Compile Include="FileFormats\DAT\Sections\SpriteSection.cs" />
     <Compile Include="FileFormats\PVR\PVRFile.cs" />
-    <Compile Include="DataReader.cs" />
+    <Compile Include="Misc\DataReader.cs" />
     <Compile Include="FileFormats\DAT\DATFile.cs" />
     <Compile Include="FileFormats\ZSTREAM\ZSTREAMFile.cs" />
     <Compile Include="Forms\ComboAskForm.cs">

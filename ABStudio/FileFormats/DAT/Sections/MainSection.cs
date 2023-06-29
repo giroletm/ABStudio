@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ABStudio.Misc;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ABStudio.FileFormats.DAT
 {
@@ -18,7 +20,37 @@ namespace ABStudio.FileFormats.DAT
             public Section section = null;
 
             public MainSection() : base() { }
-            public MainSection(byte[] data) : base(data) { }
+            public MainSection(byte[] data, bool isHeaderless=false) {
+                this.isHeaderless = isHeaderless;
+
+                if (!isHeaderless)
+                {
+                    FromBytes(data);
+                    return;
+                }
+
+                DialogResult dr = MessageBox.Show("The file you opened couldn't be identified."
+                    + Environment.NewLine
+                    + Environment.NewLine + "This can happen in two cases:"
+                    + Environment.NewLine + "- The file you inputed is invalid"
+                    + Environment.NewLine + "- The file you inputed is a v1.0.0 DAT file, which doesn't have identification sections"
+                    + Environment.NewLine
+                    + Environment.NewLine + "If you want to open the file as a v1.0.0 DAT file, click OK."
+                    + Environment.NewLine + "Otherwise, click Cancel."
+                    , "How do you want your file opened?", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+
+                if (dr == DialogResult.Cancel)
+                    throw new Exception("You chose not to open the file.");
+
+                string asked = Common.AskForType();
+
+                if(asked == "Spritesheet")
+                {
+                    section = new SpriteSection(data, isHeaderless);
+                }
+                else
+                    throw new Exception("You cancelled file opening.");
+            }
 
             public override byte[] AsJSONBytes()
             {

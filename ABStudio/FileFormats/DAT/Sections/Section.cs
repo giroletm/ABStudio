@@ -14,18 +14,28 @@ namespace ABStudio.FileFormats.DAT
     {
         private abstract class Section
         {
+            public bool isHeaderless = false;
+
             public abstract string Magic { get; }
 
             public Section() { }
-            public Section(byte[] data)
+            public Section(byte[] data, bool isHeaderless=false)
             {
-                FromBytes(data);
+                this.isHeaderless = isHeaderless;
+
+                if (isHeaderless)
+                    FromCoreBytes(data);
+                else
+                    FromBytes(data);
             }
 
             public abstract byte[] AsJSONBytes();
 
             public byte[] AsBytes()
             {
+                if(this.isHeaderless)
+                    return this.AsCoreBytes();
+
                 List<byte> rawdata = new List<byte>();
                 foreach (char c in Magic)
                     rawdata.Add((byte)(c & 0xFF));
