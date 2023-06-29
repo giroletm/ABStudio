@@ -278,7 +278,7 @@ namespace ABStudio.FileFormats.ZSTREAM
 
                     string fmt = "";
                     int n = 0x20;
-                    while (streamData[n] != 0 || n == 0x28) {
+                    while (streamData[n] != 0 && n < 0x28) {
                         fmt += (char)streamData[n];
                         n++;
                     }

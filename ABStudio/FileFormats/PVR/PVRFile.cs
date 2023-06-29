@@ -24,6 +24,8 @@ namespace ABStudio.FileFormats.PVR
             tex = PVRTexLib.PVRTexLibCreateTextureFromData(dataPtr);
             if (ReferenceEquals(tex, null))
                 throw new Exception("Invalid PVR file.");
+
+            Marshal.FreeHGlobal(dataPtr);
         }
 
         public PVRFile(Bitmap bmp, string format="r4g4b4a4")
@@ -44,14 +46,6 @@ namespace ABStudio.FileFormats.PVR
             ulong textureSize = PVRTexLib.PVRTexLibGetTextureDataSize(header, -1, true, true);
             if (textureSize == 0)
                 return;
-
-            /*
-            BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            var length = bitmapData.Stride * bitmapData.Height;
-            byte[] bytes = new byte[length];
-            Marshal.Copy(bitmapData.Scan0, bytes, 0, length);
-            bmp.UnlockBits(bitmapData);
-            */
 
             uint bytesPerPixel = PVRTexLib.PVRTexLibGetTextureBitsPerPixel(header) / 8U;
 
@@ -153,6 +147,9 @@ namespace ABStudio.FileFormats.PVR
                 PVRTexLib.PVRTexLibDestroyTexture(newTex);
                 throw new Exception("Couldn't get duplicated PVR file header.");
             }
+
+            if (PVRTexLib.PVRTexLibGetTexturePixelFormat(newHeader) == format)
+                return newTex;
 
             PVRTexLibTranscoderOptions options = new PVRTexLibTranscoderOptions();
             options.SizeofStruct = 48;
