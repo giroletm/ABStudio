@@ -1,6 +1,8 @@
 # AB Studio
 A general purpose Angry Birds modding tool
 
+![alt text](https://github.com/giroletm/ABStudio/blob/main/Resources/Logo.png?raw=true)
+
 ## What is this?
 AB Studio is a WIP tool that aims to be able to edit every single file format used in [Angry Birds](https://wikipedia.org/wiki/Angry_Birds) games.
 
