@@ -26,11 +26,11 @@ using System.Runtime.InteropServices;
 //
 //      Version principale
 //      Version secondaire
-//      Numéro de build
-//      Révision
+//      Version tertiaire
+//      Hotfix
 //
 // Vous pouvez spécifier toutes les valeurs ou indiquer les numéros de build et de révision par défaut
 // en utilisant '*', comme indiqué ci-dessous :
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.0.2")]
-[assembly: AssemblyFileVersion("0.1.0.2")]
+[assembly: AssemblyVersion("0.1.1.0")]
+[assembly: AssemblyFileVersion("0.1.1.0")]
