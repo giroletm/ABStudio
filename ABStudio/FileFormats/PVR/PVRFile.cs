@@ -13,11 +13,15 @@ namespace ABStudio.FileFormats.PVR
     public class PVRFile
     {
         private IntPtr tex = IntPtr.Zero;
+        public bool isLegacy = false;
 
         public PVRFile(string filename) : this(File.ReadAllBytes(filename)) { }
 
         public PVRFile(byte[] pvrData)
         {
+            if (pvrData[0] == 0x34 && pvrData[1] == 0 && pvrData[2] == 0 && pvrData[3] == 0)
+                isLegacy = true;
+
             IntPtr dataPtr = Marshal.AllocHGlobal(pvrData.Length);
             Marshal.Copy(pvrData, 0, dataPtr, pvrData.Length);
 
@@ -85,12 +89,23 @@ namespace ABStudio.FileFormats.PVR
                 PVRTexLib.PVRTexLibDestroyTexture(tex);
         }
 
-        public string GetFormat()
+        public ulong GetFormat()
         {
             if (ReferenceEquals(tex, null))
-                return "";
+                return 0xFFFFFFFF;
 
-            ulong val = PVRTexLib.PVRTexLibGetTexturePixelFormat(tex);
+            IntPtr header = PVRTexLib.PVRTexLibGetTextureHeader(tex);
+            if (ReferenceEquals(header, null))
+                return 0xFFFFFFFF;
+
+            return PVRTexLib.PVRTexLibGetTexturePixelFormat(header);
+        }
+
+        public string GetFormatStr()
+        {
+            ulong val = GetFormat();
+            if (val == 0xFFFFFFFF)
+                return "";
 
             return FormatULongToString(val);
         }
@@ -176,19 +191,154 @@ namespace ABStudio.FileFormats.PVR
 
         public void Save(string filename)
         {
-            if (!PVRTexLib.PVRTexLibSaveTextureToFile(tex, filename))
-                throw new Exception("Couldn't save PVR file.");
+            File.WriteAllBytes(filename, Save());
         }
 
         public byte[] Save()
         {
             string fn = System.IO.Path.GetTempFileName();
 
-            Save(fn);
+            if (!PVRTexLib.PVRTexLibSaveTextureToFile(tex, fn))
+                throw new Exception("Couldn't save PVR file.");
 
             byte[] bytes = File.ReadAllBytes(fn);
 
             File.Delete(fn);
+
+            int metaSize = bytes[0x30] | (bytes[0x31] << 8) | (bytes[0x32] << 16) | (bytes[0x33] << 24);
+            bytes = bytes.Take(0x34).Concat(bytes.Skip(0x34 + metaSize)).ToArray();
+            bytes[0x30] = 0;
+            bytes[0x31] = 0;
+            bytes[0x32] = 0;
+            bytes[0x33] = 0;
+
+            if(isLegacy)
+            {
+                byte[] newHeader = new byte[0x34];
+
+                newHeader[0] = 0x34;
+                newHeader[1] = 0;
+                newHeader[2] = 0;
+                newHeader[3] = 0;
+
+                uint height = (uint)(bytes[0x18] | (bytes[0x19] << 8) | (bytes[0x19] << 16) | (bytes[0x19] << 24));
+                newHeader[4] = bytes[0x18];
+                newHeader[5] = bytes[0x19];
+                newHeader[6] = bytes[0x1A];
+                newHeader[7] = bytes[0x1B];
+
+                uint width = (uint)(bytes[0x1C] | (bytes[0x1D] << 8) | (bytes[0x1E] << 16) | (bytes[0x1F] << 24));
+                newHeader[8] = bytes[0x1C];
+                newHeader[9] = bytes[0x1D];
+                newHeader[0xA] = bytes[0x1E];
+                newHeader[0xB] = bytes[0x1F];
+
+                uint mipmapCount = (uint)(bytes[0x2C] | (bytes[0x2D] << 8) | (bytes[0x2E] << 16) | (bytes[0x2F] << 24)) - 1;
+                newHeader[0xC] = (byte)(mipmapCount & 0xFF);
+                newHeader[0xD] = (byte)((mipmapCount >> 8) & 0xFF);
+                newHeader[0xE] = (byte)((mipmapCount >> 16) & 0xFF);
+                newHeader[0xF] = (byte)((mipmapCount >> 24) & 0xFF);
+
+                ulong currFormat = GetFormat();
+                string currFormatStr = FormatULongToString(currFormat);
+
+                ulong rgba4444 = FormatStringToULong("r4g4b4a4");
+                ulong rgba8888 = FormatStringToULong("r8g8b8a8");
+                ulong rgb565 = FormatStringToULong("r5g6b5\00");
+
+                if (currFormat == rgba4444)
+                    newHeader[0x10] = 0x10;
+                else if (currFormat == rgba8888)
+                    newHeader[0x10] = 0x12;
+                else if (currFormat == rgb565)
+                    newHeader[0x10] = 0x13;
+                else
+                    throw new Exception("PVR Legacy: unsupported format \"" + currFormatStr + "\".");
+
+                newHeader[0x11] = 0;
+                if (mipmapCount > 0)
+                    newHeader[0x11] |= 1;
+                if (currFormatStr.Contains('a'))
+                    newHeader[0x11] |= 0x80;
+
+                newHeader[0x12] = 0;
+                newHeader[0x13] = 0;
+
+                uint bpp = PVRTexLib.PVRTexLibGetFormatBitsPerPixel(currFormat);
+                uint surfSize = (width * height) * (bpp / 8U);
+
+                newHeader[0x14] = (byte)(surfSize & 0xFF);
+                newHeader[0x15] = (byte)((surfSize >> 8) & 0xFF);
+                newHeader[0x16] = (byte)((surfSize >> 16) & 0xFF);
+                newHeader[0x17] = (byte)((surfSize >> 24) & 0xFF);
+
+                newHeader[0x18] = (byte)(bpp & 0xFF);
+                newHeader[0x19] = (byte)((bpp >> 8) & 0xFF);
+                newHeader[0x1A] = (byte)((bpp >> 16) & 0xFF);
+                newHeader[0x1B] = (byte)((bpp >> 24) & 0xFF);
+
+                uint rMask = 0;
+                uint gMask = 0;
+                uint bMask = 0;
+                uint aMask = 0;
+
+                if (currFormat == rgba4444)
+                {
+                    rMask = 0xF000;
+                    gMask = 0x0F00;
+                    bMask = 0x00F0;
+                    aMask = 0x000F;
+                }
+                else if (currFormat == rgba8888)
+                {
+                    rMask = 0xFF000000;
+                    gMask = 0x00FF0000;
+                    bMask = 0x0000FF00;
+                    aMask = 0x000000FF;
+                }
+                else if (currFormat == rgb565)
+                {
+                    rMask = 0xF800;
+                    gMask = 0x07E0;
+                    bMask = 0x001F;
+                    aMask = 0x0000;
+                }
+                else
+                    throw new Exception("PVR Legacy: unsupported format \"" + currFormatStr + "\".");
+
+                newHeader[0x1C] = (byte)(rMask & 0xFF);
+                newHeader[0x1D] = (byte)((rMask >> 8) & 0xFF);
+                newHeader[0x1E] = (byte)((rMask >> 16) & 0xFF);
+                newHeader[0x1F] = (byte)((rMask >> 24) & 0xFF);
+
+                newHeader[0x20] = (byte)(gMask & 0xFF);
+                newHeader[0x21] = (byte)((gMask >> 8) & 0xFF);
+                newHeader[0x22] = (byte)((gMask >> 16) & 0xFF);
+                newHeader[0x23] = (byte)((gMask >> 24) & 0xFF);
+
+                newHeader[0x24] = (byte)(bMask & 0xFF);
+                newHeader[0x25] = (byte)((bMask >> 8) & 0xFF);
+                newHeader[0x26] = (byte)((bMask >> 16) & 0xFF);
+                newHeader[0x27] = (byte)((bMask >> 24) & 0xFF);
+
+                newHeader[0x28] = (byte)(aMask & 0xFF);
+                newHeader[0x29] = (byte)((aMask >> 8) & 0xFF);
+                newHeader[0x2A] = (byte)((aMask >> 16) & 0xFF);
+                newHeader[0x2B] = (byte)((aMask >> 24) & 0xFF);
+
+                newHeader[0x2C] = (byte)0x50;
+                newHeader[0x2D] = (byte)0x56;
+                newHeader[0x2E] = (byte)0x52;
+                newHeader[0x2F] = (byte)0x21;
+
+                newHeader[0x30] = bytes[0x24];
+                newHeader[0x31] = bytes[0x25];
+                newHeader[0x32] = bytes[0x26];
+                newHeader[0x33] = bytes[0x27];
+
+                for (int i = 0; i < 0x34; i++)
+                    bytes[i] = newHeader[i];
+            }
 
             return bytes;
         }

@@ -392,7 +392,7 @@ namespace ABStudio.FileFormats.ZSTREAM
                 Bitmap subbmp = bmp.Clone(new Rectangle(pInfo.x, pInfo.y, pInfo.w, pInfo.h), bmp.PixelFormat);
 
                 PVRFile pvr = new PVRFile(subbmp, fmt);
-                byte[] asData = pvr.Save().Skip(0x44).ToArray();
+                byte[] asData = pvr.Save().Skip(0x34).ToArray();
                 byte[] header = new byte[0x28];
 
                 subbmp.Dispose();

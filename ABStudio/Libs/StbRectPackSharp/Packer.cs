@@ -122,7 +122,7 @@ namespace StbRectPackSharp
 			// Double the size of the packer until the new rectangle will fit
 			while (pr == null)
 			{
-				Packer newPacker = new Packer(packer.Width + 256, packer.Height + 256);
+				Packer newPacker = new Packer(packer.Width + 128, packer.Height + 128);
 
 				// Place existing rectangles
 				foreach (PackerRectangle existingRect in packer.PackRectangles)

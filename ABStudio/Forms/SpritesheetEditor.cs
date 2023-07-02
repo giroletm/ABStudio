@@ -31,6 +31,8 @@ namespace ABStudio.Forms
         private object SelectedObj => spritesheetPictureBox.SelectedSRect;
         private DATFile.SpriteData.Sprite SelectedSprite => spritesheetPictureBox.GetSRectLinkedObject(SelectedObj) as DATFile.SpriteData.Sprite;
 
+        private bool legacyPVR = false;
+
         #region Extensions management
 
         private static readonly string[] supportedPicExt = new string[] { "pvr", "png", "jpg", "gif", "bmp", "tiff" };
@@ -180,6 +182,7 @@ namespace ABStudio.Forms
             if (ext == ".pvr")
             {
                 PVRFile pvr = new PVRFile(spritesheet);
+                pvr.isLegacy = this.legacyPVR;
                 pvr.Save(fname);
             }
             else if(ext == ".stream")
@@ -236,14 +239,25 @@ namespace ABStudio.Forms
                         Packer.PackRectForce(ref packer, bmp.Width + 4, bmp.Height + 4, bmp);
                     }
 
-                    if (maf.ChosenAnswer == 1)
-                        data.sprites.Clear();
+                    int left = int.MaxValue;
+                    int top = int.MaxValue;
+                    int right = int.MinValue;
+                    int bottom = int.MinValue;
 
                     Bitmap full = new Bitmap(packer.Width, packer.Height);
                     using (Graphics g = Graphics.FromImage(full))
                     {
                         foreach (PackerRectangle rect in packer.PackRectangles)
                         {
+                            if (rect.X < left)
+                                left = rect.X;
+                            if (rect.Y < top)
+                                top = rect.Y;
+                            if ((rect.X + rect.Width) > right)
+                                right = rect.X + rect.Width;
+                            if ((rect.Y + rect.Height) > bottom)
+                                bottom = rect.Y + rect.Height;
+
                             Bitmap bmp = rect.Data as Bitmap;
                             Rectangle mainRect = new Rectangle(rect.X + 2, rect.Y + 2, bmp.Width, bmp.Height);
                             g.DrawImage(bmp, mainRect, new Rectangle(0, 0, bmp.Width, bmp.Height), GraphicsUnit.Pixel);
@@ -253,25 +267,43 @@ namespace ABStudio.Forms
 
                             g.DrawImage(bmp, new Rectangle(rect.X+2, rect.Y+1, bmp.Width, 1), new Rectangle(0, 0, bmp.Width, 1), GraphicsUnit.Pixel);
                             g.DrawImage(bmp, new Rectangle(rect.X+2, rect.Y+bmp.Height+2, bmp.Width, 1), new Rectangle(0, bmp.Height-1, bmp.Width, 1), GraphicsUnit.Pixel);
-
-                            if (maf.ChosenAnswer != 2)
-                            {
-                                DATFile.SpriteData.Sprite sprite = new DATFile.SpriteData.Sprite();
-                                sprite.name = names[bmps.IndexOf(bmp)];
-                                sprite.rect = mainRect;
-                                sprite.orig = new Point(sprite.rect.Width / 2, sprite.rect.Height / 2);
-
-                                data.sprites.Add(sprite);
-                            }
                         }
                     }
+
+                    full = full.Clone(new Rectangle(left, top, right - left, bottom - top), full.PixelFormat);
+
+                    if (full.Width > 2048 || full.Height > 2048)
+                    {
+                        MessageBox.Show("Couldn't fit your sprites in a 2048x2048 spritesheet", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    if (maf.ChosenAnswer == 1)
+                        data.sprites.Clear();
+
+                    if (maf.ChosenAnswer != 2)
+                    {
+                        foreach (PackerRectangle rect in packer.PackRectangles)
+                        {
+                            DATFile.SpriteData.Sprite sprite = new DATFile.SpriteData.Sprite();
+
+                            Bitmap bmp = rect.Data as Bitmap;
+
+                            sprite.name = names[bmps.IndexOf(rect.Data as Bitmap)];
+                            sprite.rect = new Rectangle(rect.X + 2 - left, rect.Y + 2 - top, bmp.Width, bmp.Height);
+                            sprite.orig = new Point(sprite.rect.Width / 2, sprite.rect.Height / 2);
+
+                            data.sprites.Add(sprite);
+                        }
+                    }
+
 
                     spritesheet = full;
                     spritesheetPictureBox.Image = spritesheet;
                     RefreshRects();
                     RefreshZoom();
 
-                    filenameTextBox.Text = "-- IMPORTED SPRITE FOLDER, REPLACE THIS --";
+                    filenameTextBox.Text = Path.GetFileName(dialog.ResultPath) + ".png";
                 }
             }
         }
@@ -368,6 +400,7 @@ namespace ABStudio.Forms
                 path = null;
 
             bool hasSpecifiedPath = path != null;
+            legacyPVR = false;
 
             if (data.filenames.Count <= 0 && !hasSpecifiedPath)
             {
@@ -380,6 +413,7 @@ namespace ABStudio.Forms
                 if(ext == ".pvr")
                 {
                     PVRFile pvr = new PVRFile(fullPath);
+                    legacyPVR = pvr.isLegacy;
                     spritesheet = pvr.AsBitmap();
                 }
                 else if(fullPath.EndsWith(".stream") || ext == ".zstream")
