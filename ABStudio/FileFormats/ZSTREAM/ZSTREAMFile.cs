@@ -33,7 +33,7 @@ namespace ABStudio.FileFormats.ZSTREAM
         {
             public string app = "";
             public string format = "";
-            public string image = "";
+            //public string image = "";
             public int sizeW = -1, sizeH = -1, scale = -1;
             public string version = "";
         }
@@ -145,7 +145,8 @@ namespace ABStudio.FileFormats.ZSTREAM
             JToken meta = root.SelectToken("meta");
             this.meta.app = meta.SelectToken("app").ToObject<string>();
             this.meta.format = meta.SelectToken("format").ToObject<string>();
-            this.meta.image = meta.SelectToken("image").ToObject<string>();
+            //this.meta.image = meta.SelectToken("image").ToObject<string>();
+            string filename = meta.SelectToken("image").ToObject<string>();
             this.meta.version = meta.SelectToken("version").ToObject<string>();
 
             JToken metaSize = meta.SelectToken("size");
@@ -157,7 +158,7 @@ namespace ABStudio.FileFormats.ZSTREAM
             DATFile.SpriteData spriteData = dat.GetAsSpriteData();
             spriteData.associatedZSTREAM = this;
 
-            spriteData.filenames.Add(this.meta.image);
+            spriteData.filenames.Add(filename);
 
             JToken frames = root.SelectToken("frames");
             foreach (JToken frame in frames.Children())
@@ -209,9 +210,25 @@ namespace ABStudio.FileFormats.ZSTREAM
             associatedSD = spriteData;
         }
 
-        public void UpdateBitmap(Bitmap bmp, string filename)
+        public string GetFormatAsPVR()
         {
-            this.meta.image = filename;
+            string fmt = this.meta.format.ToLower();
+            int half = fmt.Length / 2;
+
+            char ch1 = (char)((0 < half) ? fmt[0] : 0);
+            char ch2 = (char)((1 < half) ? fmt[1] : 0);
+            char ch3 = (char)((2 < half) ? fmt[2] : 0);
+            char ch4 = (char)((3 < half) ? fmt[3] : 0);
+            char va1 = (char)((half < fmt.Length) ? fmt[half] : 0);
+            char va2 = (char)(((half + 1) < fmt.Length) ? fmt[half + 1] : 0);
+            char va3 = (char)(((half + 2) < fmt.Length) ? fmt[half + 2] : 0);
+            char va4 = (char)(((half + 3) < fmt.Length) ? fmt[half + 3] : 0);
+
+            return new string(new char[] { ch1, va1, ch2, va2, ch3, va3, ch4, va4 });
+        }
+
+        public void UpdateBitmap(Bitmap bmp)
+        {
             this.meta.sizeW = bmp.Width;
             this.meta.sizeH = bmp.Height;
         }
@@ -373,19 +390,7 @@ namespace ABStudio.FileFormats.ZSTREAM
             int pos = 0;
             byte[] outBytes = new byte[placementInfos.Last().position + placementInfos.Last().length + 0x28];
 
-            string fmt = this.meta.format.ToLower();
-            int half = fmt.Length / 2;
-
-            char ch1 = (char)((0 < half) ? fmt[0] : 0);
-            char ch2 = (char)((1 < half) ? fmt[1] : 0);
-            char ch3 = (char)((2 < half) ? fmt[2] : 0);
-            char ch4 = (char)((3 < half) ? fmt[3] : 0);
-            char va1 = (char)((half < fmt.Length) ? fmt[half] : 0);
-            char va2 = (char)(((half + 1) < fmt.Length) ? fmt[half + 1] : 0);
-            char va3 = (char)(((half + 2) < fmt.Length) ? fmt[half + 2] : 0);
-            char va4 = (char)(((half + 3) < fmt.Length) ? fmt[half + 3] : 0);
-
-            fmt = new string(new char[] { ch1, va1, ch2, va2, ch3, va3, ch4, va4 });
+            string fmt = GetFormatAsPVR();
 
             foreach (PlacementInfo pInfo in placementInfos)
             {
@@ -623,7 +628,7 @@ namespace ABStudio.FileFormats.ZSTREAM
             JObject jmeta = new JObject();
             jmeta.Add("app", this.meta.app);
             jmeta.Add("format", this.meta.format);
-            jmeta.Add("image", this.meta.image);
+            jmeta.Add("image", associatedSD.filenames[0]);
 
             JObject jsize = new JObject();
             jsize.Add("h", this.meta.sizeH);

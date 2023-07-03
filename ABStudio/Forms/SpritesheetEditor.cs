@@ -32,6 +32,7 @@ namespace ABStudio.Forms
         private DATFile.SpriteData.Sprite SelectedSprite => spritesheetPictureBox.GetSRectLinkedObject(SelectedObj) as DATFile.SpriteData.Sprite;
 
         private bool legacyPVR = false;
+        private string pvrFormat = "";
 
         #region Extensions management
 
@@ -181,7 +182,52 @@ namespace ABStudio.Forms
 
             if (ext == ".pvr")
             {
-                PVRFile pvr = new PVRFile(spritesheet);
+                if (this.pvrFormat == "")
+                {
+                    bool chosen = false;
+
+                    while (!chosen)
+                    {
+                        string[] formats = new string[] { "RGBA4444", "RGBA8888", "RGB565" };
+                        using (MCQAskForm mcqAskForm = new MCQAskForm(formats, "PVR image format"))
+                        {
+                            if (mcqAskForm.ShowDialog() == DialogResult.OK)
+                            {
+                                string fmt = formats[mcqAskForm.ChosenAnswer].ToLower();
+                                int half = fmt.Length / 2;
+
+                                char ch1 = (char)((0 < half) ? fmt[0] : 0);
+                                char ch2 = (char)((1 < half) ? fmt[1] : 0);
+                                char ch3 = (char)((2 < half) ? fmt[2] : 0);
+                                char ch4 = (char)((3 < half) ? fmt[3] : 0);
+                                char va1 = (char)((half < fmt.Length) ? fmt[half] : 0);
+                                char va2 = (char)(((half + 1) < fmt.Length) ? fmt[half + 1] : 0);
+                                char va3 = (char)(((half + 2) < fmt.Length) ? fmt[half + 2] : 0);
+                                char va4 = (char)(((half + 3) < fmt.Length) ? fmt[half + 3] : 0);
+
+                                this.pvrFormat = new string(new char[] { ch1, va1, ch2, va2, ch3, va3, ch4, va4 });
+
+                                chosen = true;
+                            }
+                        }
+                    }
+
+                    chosen = false;
+
+                    while (!chosen)
+                    {
+                        string[] answers = new string[] { "No", "Yes" };
+                        using (MCQAskForm mcqAskForm = new MCQAskForm(answers, "Save PVR in Legacy form?"))
+                        {
+                            if (mcqAskForm.ShowDialog() == DialogResult.OK)
+                            {
+                                this.legacyPVR = (mcqAskForm.ChosenAnswer == 1) ? true : false;
+                            }
+                        }
+                    }
+                }
+
+                PVRFile pvr = new PVRFile(spritesheet, this.pvrFormat);
                 pvr.isLegacy = this.legacyPVR;
                 pvr.Save(fname);
             }
@@ -401,6 +447,7 @@ namespace ABStudio.Forms
 
             bool hasSpecifiedPath = path != null;
             legacyPVR = false;
+            pvrFormat = "";
 
             if (data.filenames.Count <= 0 && !hasSpecifiedPath)
             {
@@ -414,12 +461,17 @@ namespace ABStudio.Forms
                 {
                     PVRFile pvr = new PVRFile(fullPath);
                     legacyPVR = pvr.isLegacy;
+                    pvrFormat = pvr.GetFormatStr();
                     spritesheet = pvr.AsBitmap();
                 }
                 else if(fullPath.EndsWith(".stream") || ext == ".zstream")
                 {
                     if (data.associatedZSTREAM != null)
+                    {
                         spritesheet = data.associatedZSTREAM.GetBitmap(fullPath);
+                        pvrFormat = data.associatedZSTREAM.GetFormatAsPVR();
+                        legacyPVR = false;
+                    }
                     else
                         throw new Exception("Non-JSON sheets can't have a stream or zstream texture");
                 }
@@ -431,7 +483,7 @@ namespace ABStudio.Forms
                 }
 
                 if (data.associatedZSTREAM != null)
-                    data.associatedZSTREAM.UpdateBitmap(spritesheet, Path.GetFileName(fullPath));
+                    data.associatedZSTREAM.UpdateBitmap(spritesheet);
             }
             else
             {
