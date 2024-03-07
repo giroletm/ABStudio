@@ -69,6 +69,8 @@ namespace ABStudio.Forms
 
         public SpritesheetEditor(string path, DATFile file)
         {
+            spritesheet = new Bitmap(1, 1);
+
             InitializeComponent();
 
             originalPath = path;
