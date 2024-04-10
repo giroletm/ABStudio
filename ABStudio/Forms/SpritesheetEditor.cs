@@ -69,8 +69,6 @@ namespace ABStudio.Forms
 
         public SpritesheetEditor(string path, DATFile file)
         {
-            spritesheet = new Bitmap(1, 1);
-
             InitializeComponent();
 
             originalPath = path;
@@ -499,6 +497,14 @@ namespace ABStudio.Forms
 
         private void RefreshZoom()
         {
+            if (spritesheet == null)
+            {
+                // On some computers, this method may be called by `InitializeComponent` in the class constructor.
+                // In this case, `spritesheet` is null, which can cause NullReferenceException to be thrown.
+                
+                spritesheet = new Bitmap(1, 1);
+            }
+            
             float w = spritesheet.Width * zoom;
             float h = spritesheet.Height * zoom;
 
