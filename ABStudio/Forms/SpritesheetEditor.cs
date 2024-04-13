@@ -497,6 +497,12 @@ namespace ABStudio.Forms
 
         private void RefreshZoom()
         {
+            // On some computers, this method may be called by `InitializeComponent` in the class constructor.
+            // In this case, `spritesheet` is null, which can cause NullReferenceException to be thrown.
+            // See https://github.com/giroletm/ABStudio/pull/2
+            if (spritesheet == null)
+                return;
+            
             float w = spritesheet.Width * zoom;
             float h = spritesheet.Height * zoom;
 
